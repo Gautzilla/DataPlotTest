@@ -21,8 +21,8 @@ namespace PlotTest
 
             Data testData = new Data(@"C:\Users\User\Desktop\Distance.csv");
 
-            List<string> dataComb = new List<string>() { "Suaps", "2m" };
-            Debug.WriteLine(string.Join("\n", testData.GetData(dataComb)));
+            List<string> dataComb = new List<string>() { "2m" };
+            Debug.WriteLine(string.Join(" ; ", testData.GetData(dataComb)));
         }
     }
 }

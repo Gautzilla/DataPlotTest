@@ -43,7 +43,7 @@ namespace PlotTest
         }
 
         /// <summary>
-        /// outputs the number of variable levels combinations for the variable following the one passed as input
+        /// Outputs the number of variable levels combinations for the variable following the one passed as input.
         /// </summary>
         /// <param name="variable"> Name of the variable as stored in _variablesOrdering.</param>
         /// <returns></returns>
@@ -57,6 +57,27 @@ namespace PlotTest
         /// </summary>
         /// <param name="variables">A list of strings representing the variables' required levels</param>
         /// <returns>The raw data (a list of same size as the subjects sample) matching the specified variable levels</returns>
-        public List<float> GetData(List<string> variables) => _data.FirstOrDefault(d => d.var.All(var => variables.Contains(var))).val;
+        public List<float> GetData(List<string> variables) => _data.Where(dat => variables.All(v => dat.var.Contains(v))).SelectMany(d => d.val).ToList();
+
+        /// <summary>
+        /// Outputs the levels of a given variable.
+        /// </summary>
+        /// <param name="variable">Name of the variable.</param>
+        /// <returns>List of the variable's levels.</returns>
+        public List<string> GetLevels(string variable) => _variables[variable].ToList();
+
+        /// <summary>
+        /// Outputs the coordinates of the mean points accross subjects for a given level of a given variable (y-axis) on a given variable x-axis.
+        /// </summary>
+        /// <param name="variable">Name of the variable that is plotted on the line.</param>
+        /// <param name="level">Name of the level to plot on the line.</param>
+        /// <param name="xAxis">Name of the x-Axis variable.</param>
+        /// <returns></returns>
+        public List<(string x, float y)> GetMeanLine (string variable, string level, string xAxis)
+        {
+            return new List<(string x, float y)>();
+        }
+
+        private static float Mean(List<float> points) => points.Average();
     }
 }
