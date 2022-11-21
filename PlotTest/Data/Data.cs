@@ -53,11 +53,11 @@ namespace PlotTest
         }
 
         /// <summary>
-        /// Debug method for checking if the data storing is efficient.
+        /// Returns all the values matching a given set of levels.
         /// </summary>
-        /// <param name="variables">A list of strings representing the variables' required levels</param>
+        /// <param name="levels">The varaibles' levels at which the values are needed.</param>
         /// <returns>The raw data (a list of same size as the subjects sample) matching the specified variable levels</returns>
-        public List<float> GetData(List<string> variables) => _data.Where(dat => variables.All(v => dat.var.Contains(v))).SelectMany(d => d.val).ToList();
+        private List<float> GetData(List<string> levels) => _data.Where(dat => levels.All(v => dat.var.Contains(v))).SelectMany(d => d.val).ToList();
 
         /// <summary>
         /// Outputs the levels of a given variable.
@@ -67,17 +67,36 @@ namespace PlotTest
         public List<string> GetLevels(string variable) => _variables[variable].ToList();
 
         /// <summary>
-        /// Outputs the coordinates of the mean points accross subjects for a given level of a given variable (y-axis) on a given variable x-axis.
+        /// Outputs the coordinates of the mean points accross subjects for a given variable (Simple effect).
         /// </summary>
-        /// <param name="variable">Name of the variable that is plotted on the line.</param>
-        /// <param name="level">Name of the level to plot on the line.</param>
-        /// <param name="xAxis">Name of the x-Axis variable.</param>
+        /// <param name="variable">Variable from which to plot.</param>
         /// <returns></returns>
-        public List<(string x, float y)> GetMeanLine (string variable, string level, string xAxis)
+        public List<(string x, float y)> SimpleEffectMeanLine (string variable)
         {
-            return new List<(string x, float y)>();
+            return GetLevels(variable).Select(x => (x,GetData(new List<string>() { x }).Average())).ToList();
         }
 
-        private static float Mean(List<float> points) => points.Average();
+        public List<(string x, (float l, float h) y)> SimpleEffectStd (string variable)
+        {
+            return GetLevels(variable).Select(x => (x, ConfidenceInterval(GetData(new List<string>() { x })))).ToList();
+        }
+
+        /// <summary>
+        /// Outputs a list of lines, which contains the coordinates of the maen points accross subjects for a given interaction.
+        /// </summary>
+        /// <param name="variableY">The variable which levels are plotted as separate lines.</param>
+        /// <param name="variableX">the variable to be plotted on the x axis.</param>
+        /// <returns></returns>
+        public List<List<(string x, float y)>> InteractionMeanLine (string variableY, string variableX)
+        {
+            return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, GetData(new List<string>() { x, level }).Average())).ToList()).ToList();
+        }
+
+        private (float l, float h) ConfidenceInterval (List<float> dat)
+        {
+            float mean = dat.Average();
+            float standardError = (float)(1.96 * Math.Sqrt(dat.Select(d => Math.Pow(d - mean, 2)).Sum() / dat.Count));
+            return (mean - standardError, mean + standardError);
+        }
     }
 }
