@@ -19,13 +19,11 @@ namespace PlotTest
         {
             InitializeComponent();
 
-            //chart1.Series["s1"].Points.AddXY(0,0,0,0);
-
             Data testData = new Data(@"C:\Users\User\Desktop\Distance.csv");
 
-            PlotSimpleEffect(testData, "Salle");
+            //PlotSimpleEffect(testData, "Salle");
 
-            //PlotInteraction(testData, "Salle", "Distance");
+            PlotInteraction(testData, "Salle", "Distance");
         }
 
         private void PlotSimpleEffect(Data data, string variable)
@@ -69,7 +67,7 @@ namespace PlotTest
                 var sdLine = data.InteractionStd(variableY, variableX);
                 chart1.Series.Add($"{lineName} sd");
                 chart1.Series[$"{lineName} sd"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.ErrorBar;
-                Appearance($"{lineName} sd", Color.Black, _styles[i]);
+                Appearance($"{lineName} sd", Color.Black, ChartDashStyle.Solid);
                 foreach (var point in sdLine[i])
                 {
                     chart1.Series[$"{lineName} sd"].Points.AddXY(point.x, 0, point.y.l, point.y.h);

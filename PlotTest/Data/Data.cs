@@ -43,10 +43,10 @@ namespace PlotTest
         }
 
         /// <summary>
-        /// Outputs the number of variable levels combinations for the variable following the one passed as input.
+        /// Access the amount of combinations of factors that follow a given variable.
         /// </summary>
         /// <param name="variable"> Name of the variable as stored in _variablesOrdering.</param>
-        /// <returns></returns>
+        /// <returns>The number of variable levels combinations for the variable following the one passed as input.</returns>
         private static int LevelsAfter(string variable)
         {
             return _variablesOrdering.Last() == variable ? 1 : _variablesOrdering.Skip(Array.IndexOf(_variablesOrdering, variable) + 1).Select(nextV => _variables[nextV].Length).Aggregate((a, b) => a * b);
@@ -60,43 +60,59 @@ namespace PlotTest
         private List<float> GetData(List<string> levels) => _data.Where(dat => levels.All(v => dat.var.Contains(v))).SelectMany(d => d.val).ToList();
 
         /// <summary>
-        /// Outputs the levels of a given variable.
+        /// Returns the levels of a given variable.
         /// </summary>
         /// <param name="variable">Name of the variable.</param>
         /// <returns>List of the variable's levels.</returns>
         public List<string> GetLevels(string variable) => _variables[variable].ToList();
 
         /// <summary>
-        /// Outputs the coordinates of the mean points accross subjects for a given variable (Simple effect).
+        /// Compute the mean points along levels of the given variable.
         /// </summary>
-        /// <param name="variable">Variable from which to plot.</param>
-        /// <returns></returns>
+        /// <param name="variable">Variable from which the single effect is plotted.</param>
+        /// <returns>The coordinates of the mean points accross subjects for a given variable (Simple effect)</returns>
         public List<(string x, float y)> SimpleEffectMeanLine (string variable)
         {
             return GetLevels(variable).Select(x => (x,GetData(new List<string>() { x }).Average())).ToList();
         }
 
+        /// <summary>
+        /// Compute the confidence intervals along levels of the given variable.
+        /// </summary>
+        /// <param name="variable">Variable from which the single effect is plotted.</param>
+        /// <returns>A list of coordinates for the confidence intervals corresponding to a simple effect.</returns>
         public List<(string x, (float l, float h) y)> SimpleEffectStd (string variable)
         {
             return GetLevels(variable).Select(x => (x, ConfidenceInterval(GetData(new List<string>() { x })))).ToList();
         }
 
         /// <summary>
-        /// Outputs a list of lines, which contains the coordinates of the maen points accross subjects for a given interaction.
+        /// Compute the mean points along levels of the given variable for a given 2-factors interaction.
         /// </summary>
         /// <param name="variableY">The variable which levels are plotted as separate lines.</param>
-        /// <param name="variableX">the variable to be plotted on the x axis.</param>
-        /// <returns></returns>
+        /// <param name="variableX">The variable to be plotted on the x axis.</param>
+        /// <returns>A list of lines, which contains the coordinates of the mean points accross subjects for a given interaction.</returns>
         public List<List<(string x, float y)>> InteractionMeanLine (string variableY, string variableX)
         {
             return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, GetData(new List<string>() { x, level }).Average())).ToList()).ToList();
         }
 
+        /// <summary>
+        /// Compute the confidence intervals along levels of the given variable for a given 2-factors interaction.
+        /// </summary>
+        /// <param name="variableY">The variable which levels are plotted as separate lines.</param>
+        /// <param name="variableX">The variable to be plotted on the x axis.</param>
+        /// <returns>A list of lists of error bars, which contains the coordinates of the low and high point of the intervals.</returns>
         public List<List<(string x, (float l, float h) y)>> InteractionStd (string variableY, string variableX)
         {
             return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, ConfidenceInterval(GetData(new List<string>() { x, level })))).ToList()).ToList();
         }
 
+        /// <summary>
+        /// Computes the 95% confidence interval of a given series.
+        /// </summary>
+        /// <param name="dat">Lis of floats that form the series.</param>
+        /// <returns>The low and high ends of the 95% confidence interval.</returns>
         private (float l, float h) ConfidenceInterval (List<float> dat)
         {
             float mean = dat.Average();
