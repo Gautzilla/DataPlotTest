@@ -92,6 +92,11 @@ namespace PlotTest
             return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, GetData(new List<string>() { x, level }).Average())).ToList()).ToList();
         }
 
+        public List<List<(string x, (float l, float h) y)>> InteractionStd (string variableY, string variableX)
+        {
+            return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, ConfidenceInterval(GetData(new List<string>() { x, level })))).ToList()).ToList();
+        }
+
         private (float l, float h) ConfidenceInterval (List<float> dat)
         {
             float mean = dat.Average();
