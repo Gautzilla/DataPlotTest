@@ -19,28 +19,29 @@ namespace PlotTest
         {
             InitializeComponent();
 
-            Data testData = new Data(@"C:\Users\User\Desktop\Distance.csv");
+            Data testData = new Data(@"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Distance.csv");
 
             //PlotSimpleEffect(testData, "Salle");
 
-            PlotInteraction(testData, "Salle", "Distance");
+            PlotInteraction(testData, "Visibility", "Distance");
         }
 
         private void PlotSimpleEffect(Data data, string variable)
         {
             // MEAN
-            chart1.Series.Add($"{variable} mean");
-            chart1.Series[$"{variable} mean"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            Appearance($"{variable} mean", Color.Black, ChartDashStyle.Solid);
+            chart1.Series.Add(variable);
+            chart1.Series[variable].ChartType = SeriesChartType.Line;
+            Appearance(variable, Color.Black, ChartDashStyle.Solid, true);
             foreach (var point in data.SimpleEffectMeanLine(variable))
             {
-                chart1.Series[$"{variable} mean"].Points.AddXY(point.x, point.y);
+                chart1.Series[variable].Points.AddXY(point.x, point.y);
             }
 
             // CONFIDENCE INTERVAL
             chart1.Series.Add($"{variable} sd");
-            chart1.Series[$"{variable} sd"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.ErrorBar;
-            Appearance($"{variable} sd", Color.Black, ChartDashStyle.Solid);
+            chart1.Series[$"{variable} sd"].IsVisibleInLegend = false;
+            chart1.Series[$"{variable} sd"].ChartType = SeriesChartType.ErrorBar;
+            Appearance($"{variable} sd", Color.Black, ChartDashStyle.Solid, true);
             foreach (var point in data.SimpleEffectStd(variable))
             {
                 chart1.Series[$"{variable} sd"].Points.AddXY(point.x, 0, point.y.l, point.y.h);
@@ -55,31 +56,34 @@ namespace PlotTest
 
                 // MEAN
                 var meanLine = data.InteractionMeanLine(variableY, variableX);
-                chart1.Series.Add($"{lineName} mean");
-                chart1.Series[$"{lineName} mean"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-                Appearance($"{lineName} mean", Color.Black, _styles[i]);
+                chart1.Series.Add(lineName);
+                chart1.Series[lineName].ChartType = SeriesChartType.Line;
+                Appearance(lineName, Color.Black, _styles[i], true);
                 foreach (var point in meanLine[i])
                 {
-                    chart1.Series[$"{lineName} mean"].Points.AddXY(point.x, point.y);
+                    if (int.TryParse(point.x, out int xVal)) chart1.Series[lineName].Points.AddXY(xVal, point.y);
+                    else chart1.Series[lineName].Points.AddXY(point.x, point.y);
                 }
 
                 // CONFIDENCE INTERVAL
                 var sdLine = data.InteractionStd(variableY, variableX);
                 chart1.Series.Add($"{lineName} sd");
-                chart1.Series[$"{lineName} sd"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.ErrorBar;
-                Appearance($"{lineName} sd", Color.Black, ChartDashStyle.Solid);
+                chart1.Series[$"{lineName} sd"].ChartType = SeriesChartType.ErrorBar;
+                Appearance($"{lineName} sd", Color.Black, ChartDashStyle.Solid, false);
                 foreach (var point in sdLine[i])
                 {
-                    chart1.Series[$"{lineName} sd"].Points.AddXY(point.x, 0, point.y.l, point.y.h);
+                    if (int.TryParse(point.x, out int xVal)) chart1.Series[$"{lineName} sd"].Points.AddXY(xVal, 0, point.y.l, point.y.h);
+                    else chart1.Series[$"{lineName} sd"].Points.AddXY(point.x, 0, point.y.l, point.y.h);
                 }
             }
         }
 
-        private void Appearance(string chart, Color color, ChartDashStyle style)
+        private void Appearance(string chart, Color color, ChartDashStyle style, bool isVisible)
         {
             chart1.Series[chart].BorderWidth = 2;
             chart1.Series[chart].Color = color;
             chart1.Series[chart].BorderDashStyle = style;
+            chart1.Series[chart].IsVisibleInLegend = isVisible;
         }
 
         private void chart1_Click(object sender, EventArgs e)

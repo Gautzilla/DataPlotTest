@@ -12,11 +12,13 @@ namespace PlotTest
     {
         private static readonly Dictionary<string, string[]> _variables = new Dictionary<string, string[]>()
         {
-            {"Salle", new string[] {"Anechoique", "Suaps"} },
-            { "Distance", new string[] { "1m", "2m", "4m", "8m" } }
+            {"Room", new string[] {"Free-field", "Concert hall", "Sports hall"} },
+            {"Distance", new string[] { "1", "2", "4", "8", "16" } },
+            {"Level", new string[] { "0 dB", "-6 dB", "-12 dB"} },
+            {"Visibility", new string[] { "Visible", "Hidden"} },
         };
 
-        private static readonly string[] _variablesOrdering = new string[] { "Salle", "Distance" };
+        private static readonly string[] _variablesOrdering = new string[] { "Room", "Distance", "Level", "Visibility" };
 
         private List<(List<string> var, List<float> val)> _data; // Stores data as a tuple: list of the levels of the variables as Item1 and list of subjects values as Item2
 
