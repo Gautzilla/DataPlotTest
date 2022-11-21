@@ -26,6 +26,11 @@ namespace PlotTest
             PlotInteraction(testData, "Visibility", "Distance");
         }
 
+        /// <summary>
+        /// Plots a single effect of the specified factor.
+        /// </summary>
+        /// <param name="data">Collection of data on which the statistical analysis has been done.</param>
+        /// <param name="variable">Factor from which to plot the simple effect.</param>
         private void PlotSimpleEffect(Data data, string variable)
         {
             // MEAN
@@ -48,6 +53,12 @@ namespace PlotTest
             }
         }
 
+        /// <summary>
+        /// Plots an interaction between two factors.
+        /// </summary>
+        /// <param name="data">Collection of data on which the statistical analysis has been done.</param>
+        /// <param name="variableY">Factors from which the levels are plotted on different lines (y-axis).</param>
+        /// <param name="variableX">Factor that is used as x-axis.</param>
         private void PlotInteraction(Data data, string variableY, string variableX)
         {
             for (int i = 0; i < data.GetLevels(variableY).Count; i++)
@@ -78,6 +89,13 @@ namespace PlotTest
             }
         }
 
+        /// <summary>
+        /// Changes the aspect of the plot.
+        /// </summary>
+        /// <param name="chart">Name of the line.</param>
+        /// <param name="color">Color of the line.</param>
+        /// <param name="style">Style (solid, dash or dot) of the line.</param>
+        /// <param name="isVisible">Specify if the chart is visible in the legend.</param>
         private void Appearance(string chart, Color color, ChartDashStyle style, bool isVisible)
         {
             chart1.Series[chart].BorderWidth = 2;
