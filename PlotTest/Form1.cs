@@ -26,13 +26,13 @@ namespace PlotTest
 
             Data data = new Data(dataPath, factorsPath);
 
-            string variableX = "Level";
+            string variableX = "Distance";
             bool logY = true;
             string variableY = "Room";
             List<string> restrictionLevels = new List<string>() {};
 
             Plot(data, variableX, logY, variableY, restrictionLevels);
-            ChartLook(false, true, true, true, "Source distance (m)", "Source distance (m)");
+            ChartLook(true, true, true, true, "Source distance (m)", "Source distance (m)");
 
             // Exports an emf file for external svg conversion
             chart1.SaveImage(@"C:\Users\User\Desktop\Test.emf", ChartImageFormat.Emf);
@@ -65,11 +65,18 @@ namespace PlotTest
                 chart1.Series[lineName].ChartType = SeriesChartType.Line;
                 LineLook(lineName, Color.Black, _styles[i], true);
 
-                int x = 0;
+                int x = 0; // For the X-offset of non-numerical x values
+
                 foreach (var point in meanLine[i])
                 {
                     if (int.TryParse(point.x, out int xVal)) chart1.Series[lineName].Points.AddXY(xVal * (1 + xOffset), point.y);
-                    else chart1.Series[lineName].Points.AddXY(point.x, point.y);
+                    else
+                    {
+                        chart1.Series[lineName].Points.AddXY(x + xOffset, point.y);
+                        CustomLabel cL = new CustomLabel(x - 0.5, x + 0.5, point.x, 0, LabelMarkStyle.None, GridTickTypes.Gridline);
+                        chart1.ChartAreas[0].AxisX.CustomLabels.Add(cL);
+                        x++;
+                    }
                 }
 
                 // CONFIDENCE INTERVAL
@@ -83,7 +90,11 @@ namespace PlotTest
                 foreach (var point in sdLine[i])
                 {
                     if (int.TryParse(point.x, out int xVal)) chart1.Series[$"{lineName} sd"].Points.AddXY(xVal * (1 + xOffset), 0, point.y.l, point.y.h);
-                    else chart1.Series[$"{lineName} sd"].Points.AddXY(point.y, 0, point.y.l, point.y.h);
+                    else
+                    {
+                        chart1.Series[$"{lineName} sd"].Points.AddXY(x + xOffset, 0, point.y.l, point.y.h);
+                        x++;
+                    }
                 }
             }
         }
