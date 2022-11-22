@@ -26,43 +26,16 @@ namespace PlotTest
 
             Data data = new Data(dataPath, factorsPath);
 
-            //PlotSimpleEffect(data, "Visibility", false);
-
+            string variableX = "Level";
             bool logY = true;
+            string variableY = "Room";
             List<string> restrictionLevels = new List<string>() {};
-            PlotInteraction(data, "Room", "Distance", logY, restrictionLevels);
 
-            ChartLook(true, true, true, true, "Source distance (m)", "Source distance (m)");
+            Plot(data, variableX, logY, variableY, restrictionLevels);
+            ChartLook(false, true, true, true, "Source distance (m)", "Source distance (m)");
 
             // Exports an emf file for external svg conversion
             chart1.SaveImage(@"C:\Users\User\Desktop\Test.emf", ChartImageFormat.Emf);
-        }
-
-        /// <summary>
-        /// Plots a single effect of the specified factor.
-        /// </summary>
-        /// <param name="data">Collection of data on which the statistical analysis has been done.</param>
-        /// <param name="variable">Factor from which to plot the simple effect.</param>
-        private void PlotSimpleEffect(Data data, string variable, bool logY)
-        {
-            // MEAN
-            chart1.Series.Add(variable);
-            chart1.Series[variable].ChartType = SeriesChartType.Line;
-            LineLook(variable, Color.Black, ChartDashStyle.Solid, true);
-            foreach (var point in data.SimpleEffectMeanLine(variable, logY))
-            {
-                chart1.Series[variable].Points.AddXY(point.x, point.y);
-            }
-
-            // CONFIDENCE INTERVAL
-            chart1.Series.Add($"{variable} sd");
-            chart1.Series[$"{variable} sd"].IsVisibleInLegend = false;
-            chart1.Series[$"{variable} sd"].ChartType = SeriesChartType.ErrorBar;
-            LineLook($"{variable} sd", Color.Black, ChartDashStyle.Solid, true);
-            foreach (var point in data.SimpleEffectStd(variable, logY))
-            {
-                chart1.Series[$"{variable} sd"].Points.AddXY(point.x, 0, point.y.l, point.y.h);
-            }
         }
 
         /// <summary>
@@ -71,20 +44,28 @@ namespace PlotTest
         /// <param name="data">Collection of data on which the statistical analysis has been done.</param>
         /// <param name="variableY">Factors from which the levels are plotted on different lines (y-axis).</param>
         /// <param name="variableX">Factor that is used as x-axis.</param>
-        private void PlotInteraction(Data data, string variableY, string variableX, bool logY, List<string> restrictionLevels = null)
+        private void Plot(Data data, string variableX, bool logY, string variableY = null, List<string> restrictionLevels = null)
         {
             for (int i = 0; i < data.GetLevels(variableY).Count; i++)
             {
                 // Computes the offset to apply to each line depending on if there are 2 or 3 lines.
-                float xOffset = 0.05f * (data.GetLevels(variableY).Count == 2 ? (i == 0 ? -1 : 1) : i - 1);
+                float xOffset = 0.05f ;
+                switch (data.GetLevels(variableY).Count)
+                {
+                    case 1: xOffset *= 0; break;
+                    case 2: xOffset *= (i == 0 ? -1 : 1); break;
+                    default: xOffset *= (i - 1); break;
+                }
 
-                string lineName = data.GetLevels(variableY)[i];
+                string lineName = data.GetLevels(variableY)[i] ?? variableX;
 
                 // MEAN
-                var meanLine = data.InteractionMeanLine(variableY, variableX, logY, restrictionLevels);
+                var meanLine = data.MeanLine(variableX, logY, variableY, restrictionLevels);
                 chart1.Series.Add(lineName);
                 chart1.Series[lineName].ChartType = SeriesChartType.Line;
                 LineLook(lineName, Color.Black, _styles[i], true);
+
+                int x = 0;
                 foreach (var point in meanLine[i])
                 {
                     if (int.TryParse(point.x, out int xVal)) chart1.Series[lineName].Points.AddXY(xVal * (1 + xOffset), point.y);
@@ -92,14 +73,17 @@ namespace PlotTest
                 }
 
                 // CONFIDENCE INTERVAL
-                var sdLine = data.InteractionStd(variableY, variableX, logY, restrictionLevels);
+                var sdLine = data.Std(variableX, logY, variableY, restrictionLevels);
                 chart1.Series.Add($"{lineName} sd");
                 chart1.Series[$"{lineName} sd"].ChartType = SeriesChartType.ErrorBar;
                 LineLook($"{lineName} sd", Color.Black, ChartDashStyle.Solid, false);
+
+                x = 0;
+                
                 foreach (var point in sdLine[i])
                 {
                     if (int.TryParse(point.x, out int xVal)) chart1.Series[$"{lineName} sd"].Points.AddXY(xVal * (1 + xOffset), 0, point.y.l, point.y.h);
-                    else chart1.Series[$"{lineName} sd"].Points.AddXY(point.x, 0, point.y.l, point.y.h);
+                    else chart1.Series[$"{lineName} sd"].Points.AddXY(point.y, 0, point.y.l, point.y.h);
                 }
             }
         }
