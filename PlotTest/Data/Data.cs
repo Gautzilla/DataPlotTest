@@ -106,10 +106,10 @@ namespace PlotTest
         /// <param name="variableX">The variable to be plotted on the x axis.</param>
         /// <param name="logY">True is the Y-axis is logarithmic, false if it's linear.</param>
         /// <returns>A list of lines, which contains the coordinates of the mean points accross subjects for a given interaction.</returns>
-        public List<List<(string x, float y)>> InteractionMeanLine (string variableY, string variableX, bool logY)
+        public List<List<(string x, float y)>> InteractionMeanLine (string variableY, string variableX, bool logY, List<string> restrictionLevels = null)
         {
-            if (logY) return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, (float)Math.Pow(10,GetData(new List<string>() { x, level }).Select(y => (float)Math.Log10(y)).Average()))).ToList()).ToList();
-            return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, GetData(new List<string>() { x, level }).Average())).ToList()).ToList();
+            if (logY) return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, (float)Math.Pow(10,GetData(new List<string>() { x, level }.Concat(restrictionLevels ?? new List<string>()).ToList()).Select(y => (float)Math.Log10(y)).Average()))).ToList()).ToList();
+            return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, GetData(new List<string>() { x, level }.Concat(restrictionLevels ?? new List<string>()).ToList()).Average())).ToList()).ToList();
         }
 
         /// <summary>
@@ -135,11 +135,6 @@ namespace PlotTest
             float mean = dat.Average();
             double sd = Math.Sqrt(dat.Select(d => Math.Pow(d - mean, 2) / dat.Count).Sum());
             float standardError = (float)(1.96 * sd/Math.Sqrt(dat.Count));
-
-            Debug.WriteLine($"Mean : {mean}");
-            Debug.WriteLine($"Standard Deviation : {Math.Sqrt(dat.Select(d => Math.Pow(d-mean,2)/dat.Count).Sum())}");
-            Debug.WriteLine($"Standard Error : {standardError}");
-            Debug.WriteLine($"Confidence Interval : ({mean - standardError},{mean + standardError})");
 
             if (logY) return ((float)Math.Pow(10,mean - standardError), (float)Math.Pow(10, mean + standardError));
             return (mean - standardError, mean + standardError);
