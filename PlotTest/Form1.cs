@@ -33,6 +33,9 @@ namespace PlotTest
             PlotInteraction(data, "Room", "Distance", logY, restrictionLevels);
 
             ChartLook(true, true, true, true, "Source distance (m)", "Source distance (m)");
+
+            // Exports an emf file for external svg conversion
+            chart1.SaveImage(@"C:\Users\User\Desktop\Test.emf", ChartImageFormat.Emf);
         }
 
         /// <summary>
