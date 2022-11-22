@@ -121,11 +121,16 @@ namespace PlotTest
         private void ChartLook(bool numX, bool logX, bool numY, bool logY, string xTitle, string yTitle)
         {
             ChartArea cA = chart1.ChartAreas[0];
+
+            cA.AxisX.MajorTickMark.Enabled = false;
+            cA.AxisX2.MajorTickMark.Enabled = false;
+            cA.AxisY.MajorTickMark.Enabled = false;
+            cA.AxisY2.MajorTickMark.Enabled = false;
             
             float offset = 0.2f;            
             int[] xMajorTicks = { 1, 2, 4, 8, 16 };
-            //int[] yMajorTicks = xMajorTicks;
-            int[] yMajorTicks = { 4, 6, 8, 10, 12, 14, 16, 18, 20 };
+            int[] yMajorTicks = xMajorTicks;
+            //int[] yMajorTicks = { 4, 6, 8, 10, 12, 14, 16, 18, 20 };
 
             if (numX)
             {
@@ -203,7 +208,7 @@ namespace PlotTest
             List<CustomLabel> majorCL = new List<CustomLabel>();
             List<CustomLabel> minorCL = new List<CustomLabel>();
 
-            for (int tick = 0; tick < majorTicks.Max(); tick++)
+            for (int tick = majorTicks.Min(); tick <= majorTicks.Max(); tick++)
             {
                 double linPos = Math.Log(tick, 2); // Log values on linear axis
 
