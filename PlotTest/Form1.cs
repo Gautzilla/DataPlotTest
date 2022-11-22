@@ -29,7 +29,8 @@ namespace PlotTest
             //PlotSimpleEffect(data, "Test", dataIsLog);
 
             bool logY = true;
-            PlotInteraction(data, "Room", "Distance", logY, new List<string>() { "Visible" });
+            List<string> restrictionLevels = new List<string>() {};
+            PlotInteraction(data, "Visibility", "Distance", logY, restrictionLevels);
 
             ChartLook(true, true, true, true);
         }
@@ -88,7 +89,7 @@ namespace PlotTest
                 }
 
                 // CONFIDENCE INTERVAL
-                var sdLine = data.InteractionStd(variableY, variableX, logY);
+                var sdLine = data.InteractionStd(variableY, variableX, logY, restrictionLevels);
                 chart1.Series.Add($"{lineName} sd");
                 chart1.Series[$"{lineName} sd"].ChartType = SeriesChartType.ErrorBar;
                 LineLook($"{lineName} sd", Color.Black, ChartDashStyle.Solid, false);

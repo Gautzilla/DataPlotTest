@@ -105,6 +105,7 @@ namespace PlotTest
         /// <param name="variableY">The variable which levels are plotted as separate lines.</param>
         /// <param name="variableX">The variable to be plotted on the x axis.</param>
         /// <param name="logY">True is the Y-axis is logarithmic, false if it's linear.</param>
+        /// <param name="restrictionLevels">Additional levels that have to be taken into account, for plotting higher-than-2-factors interactions.</param>
         /// <returns>A list of lines, which contains the coordinates of the mean points accross subjects for a given interaction.</returns>
         public List<List<(string x, float y)>> InteractionMeanLine (string variableY, string variableX, bool logY, List<string> restrictionLevels = null)
         {
@@ -117,10 +118,11 @@ namespace PlotTest
         /// </summary>
         /// <param name="variableY">The variable which levels are plotted as separate lines.</param>
         /// <param name="variableX">The variable to be plotted on the x axis.</param>
+        ///  <param name="restrictionLevels">Additional levels that have to be taken into account, for plotting higher-than-2-factors interactions.</param>
         /// <returns>A list of lists of error bars, which contains the coordinates of the low and high point of the intervals.</returns>
-        public List<List<(string x, (float l, float h) y)>> InteractionStd (string variableY, string variableX, bool logY)
+        public List<List<(string x, (float l, float h) y)>> InteractionStd (string variableY, string variableX, bool logY, List<string> restrictionLevels = null)
         {
-            return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, ConfidenceInterval(GetData(new List<string>() { x, level }), logY))).ToList()).ToList();
+            return GetLevels(variableY).Select(level => GetLevels(variableX).Select(x => (x, ConfidenceInterval(GetData(new List<string>() { x, level }.Concat(restrictionLevels ?? new List<string>()).ToList()), logY))).ToList()).ToList();
         }
 
         /// <summary>
