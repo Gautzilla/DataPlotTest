@@ -20,19 +20,19 @@ namespace PlotTest
             InitializeComponent();
 
             string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Distance.csv";
-            string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Factors.txt";
+            string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Exp1Factors.txt";
             //string dataPath = @"C:\Users\User\Desktop\Distance.csv";
             //string factorsPath = @"C:\Users\User\Desktop\Factors.txt";
 
             Data data = new Data(dataPath, factorsPath);
 
-            //PlotSimpleEffect(data, "Test", dataIsLog);
+            //PlotSimpleEffect(data, "Visibility", false);
 
             bool logY = true;
             List<string> restrictionLevels = new List<string>() {};
-            PlotInteraction(data, "Visibility", "Distance", logY, restrictionLevels);
+            PlotInteraction(data, "Room", "Distance", logY, restrictionLevels);
 
-            ChartLook(true, true, true, true);
+            ChartLook(true, true, true, true, "Source distance (m)", "Source distance (m)");
         }
 
         /// <summary>
@@ -118,12 +118,14 @@ namespace PlotTest
             if (chart.Contains("sd")) chart1.Series[chart].CustomProperties = "PixelPointWidth = 10"; ;
         }
 
-        private void ChartLook(bool numX, bool logX, bool numY, bool logY)
+        private void ChartLook(bool numX, bool logX, bool numY, bool logY, string xTitle, string yTitle)
         {
             ChartArea cA = chart1.ChartAreas[0];
             
             float offset = 0.2f;            
             int[] xMajorTicks = { 1, 2, 4, 8, 16 };
+            //int[] yMajorTicks = xMajorTicks;
+            int[] yMajorTicks = { 4, 6, 8, 10, 12, 14, 16, 18, 20 };
 
             if (numX)
             {
@@ -168,7 +170,7 @@ namespace PlotTest
 
                 if (logY)
                 {
-                    var ticks = GetLogLabels(xMajorTicks, offset);
+                    var ticks = GetLogLabels(yMajorTicks, offset);
                     foreach (var tick in ticks.major) cA.AxisY.CustomLabels.Add(tick);
                     foreach (var tick in ticks.minor) cA.AxisY2.CustomLabels.Add(tick);
                 }
@@ -176,6 +178,7 @@ namespace PlotTest
 
             cA.AxisX.LineWidth = 0;
             cA.AxisX.MajorGrid.LineColor = Color.Gray;
+            cA.AxisX.Title = xTitle;
 
             cA.AxisX2.Enabled = AxisEnabled.True;
             cA.AxisX2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
@@ -185,6 +188,7 @@ namespace PlotTest
 
             cA.AxisY.LineWidth = 0;
             cA.AxisY.MajorGrid.LineColor = Color.Gray;
+            cA.AxisY.Title = yTitle;
 
             cA.AxisY2.Enabled = AxisEnabled.True;            
             cA.AxisY2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;            
