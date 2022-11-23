@@ -10,8 +10,15 @@ namespace PlotTest
 {
     internal class Data
     {
-        private static readonly Dictionary<string, string[]> _variables = new Dictionary<string, string[]>();
+        private static List<Variable> _variables;
         private static string[] _variablesOrdering;
+
+        public List<Variable> Variables
+        {
+            get { return _variables; }
+            private set { _variables = value; }
+        }
+
 
         private List<(List<string> var, List<float> val)> _data; // Stores data as a tuple: list of the levels of the variables as Item1 and list of subjects values as Item2
 
@@ -21,6 +28,8 @@ namespace PlotTest
         /// <param name="path">Absolute path of the .csv file</param>
         public Data(string path, string variablesPath)
         {
+            Variables = new List<Variable>();
+
             SortFactors(variablesPath);
             SortData(path);
         }
@@ -28,10 +37,18 @@ namespace PlotTest
         private void SortFactors(string path)
         {
             var lines = File.ReadAllLines(path);
-            _variablesOrdering = lines.Select(l => l.Split(':').First().Trim()).ToArray();
+            _variablesOrdering = lines.Select(l => l.Split(';').First().Trim()).ToArray();
             foreach (string line in lines)
             {
-                _variables.Add(line.Split(':').First().Trim(), line.Split(':').Last().Split(',').Select(f => f.Trim()).ToArray());
+                string[] fields = line.Split(';').Select(s => s.Trim()).ToArray();
+                string name = fields[0];
+                bool isNum = fields[1] != "qualitative";
+                bool isLog = fields[1] == "log";
+                string[] levels = fields[2].Split(',').Select(l => l.Trim()).ToArray();
+                string unit = isNum ? fields[3] : string.Empty;
+
+                if (!isNum) Variables.Add(new Variable(name, levels, isNum));
+                else Variables.Add(new Variable(name, levels, isNum, isLog, unit));
             }
         }
 
@@ -41,12 +58,12 @@ namespace PlotTest
 
             _data = new List<(List<string> var, List<float> val)>();
 
-            int varCombinations = _variables.Select(v => v.Value.Length).Aggregate((a, b) => a * b);
+            int varCombinations = _variables.Select(v => v.Levels.Length).Aggregate((a, b) => a * b);
 
             for (int varComb = 0; varComb < varCombinations; varComb++)
             {
                 List<string> variableLevels = _variablesOrdering
-                    .Select(v => _variables[v][(varComb / LevelsAfter(v)) % _variables[v].Length])
+                    .Select(v => _variables.FirstOrDefault(var => var.Name == v).Levels[varComb / LevelsAfter(v) % _variables.FirstOrDefault(var => var.Name == v).Levels.Length])
                     .ToList();
 
                 _data.Add((variableLevels, lines.Select(l => float.Parse(l.Split(',').ToArray()[varComb])).ToList()));
@@ -60,7 +77,7 @@ namespace PlotTest
         /// <returns>The number of variable levels combinations for the variable following the one passed as input.</returns>
         private static int LevelsAfter(string variable)
         {
-            return _variablesOrdering.Last() == variable ? 1 : _variablesOrdering.Skip(Array.IndexOf(_variablesOrdering, variable) + 1).Select(nextV => _variables[nextV].Length).Aggregate((a, b) => a * b);
+            return _variablesOrdering.Last() == variable ? 1 : _variablesOrdering.Skip(Array.IndexOf(_variablesOrdering, variable) + 1).Select(nextV => _variables.FirstOrDefault(v => v.Name == nextV).Levels.Length).Aggregate((a, b) => a * b);
         }
 
         /// <summary>
@@ -75,7 +92,7 @@ namespace PlotTest
         /// </summary>
         /// <param name="variable">Name of the variable.</param>
         /// <returns>List of the variable's levels.</returns>
-        public List<string> GetLevels(string variable) => variable == null ? new List<string>() { null } :_variables[variable].ToList();
+        public List<string> GetLevels(string variable) => variable == null ? new List<string>() { null } :_variables.FirstOrDefault(v => v.Name == variable).Levels.ToList();
 
 
         /// <summary>
