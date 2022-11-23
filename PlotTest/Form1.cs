@@ -21,21 +21,21 @@ namespace PlotTest
         {
             InitializeComponent();
 
-            string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Distance.csv";
-            string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Exp1Factors.txt";
+            string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\LoudnessDistal.csv";
+            string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Exp2Factors.txt";
             //string dataPath = @"C:\Users\User\Desktop\Distance.csv";
             //string factorsPath = @"C:\Users\User\Desktop\Factors.txt";
 
             Data data = new Data(dataPath, factorsPath);
 
-            chart1.Size = new Size(500, 800);
+            chart1.Size = new Size(800, 500);
 
             // WRITE REQUESTED PLOT PARAMETERS HERE
             string variableX = "Distance";
             string variableY = "Visibility";
-            List<string> restrictionLevels = new List<string>() {};
+            List<string> restrictionLevels = new List<string>() {"Sports hall"};
 
-            string dependantVariable = "Distance estimate (m)";
+            string dependantVariable = "Loudness estimate";
             bool depVarIsNum = true;
             bool depVarIsLog = true;
 
@@ -44,10 +44,10 @@ namespace PlotTest
             float xTickInterval = 1f;
             float xMargin = 1.1f;
 
-            (float min, float max) yRange = (1f, 16f);
-            int[] yMajorTicks = { 1, 2, 4, 8, 16 };
+            (float min, float max) yRange = (4f, 14f);
+            int[] yMajorTicks = { 4, 6, 8, 10, 12, 14 };
             float yTickInterval = 1f;
-            float yMargin = 1.1f;
+            float yMargin = 1.07f;
 
             string figureName = $"{(dependantVariable.Contains("Distance") ? "Distance" : ("Loudness" + (dataPath.Contains("Proximal") ? "Proximal" : "Distal")))}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
 
@@ -239,7 +239,7 @@ namespace PlotTest
             cA.AxisY.TitleFont = font;
 
             chart1.Legends.First().Font = font;
-            chart1.Legends.First().LegendStyle = LegendStyle.Table;
+            chart1.Legends.First().LegendStyle = LegendStyle.Row;
             chart1.Legends.First().Docking = Docking.Top;
             chart1.Legends.First().BorderWidth = 1;
             chart1.Legends.First().BorderDashStyle = ChartDashStyle.Solid;
