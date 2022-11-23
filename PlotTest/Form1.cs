@@ -32,8 +32,8 @@ namespace PlotTest
 
             // WRITE REQUESTED PLOT PARAMETERS HERE
             string variableX = "Distance";
-            string variableY = "Room";
-            List<string> restrictionLevels = new List<string>() {};
+            string variableY = "Visibility";
+            List<string> restrictionLevels = new List<string>() {"Sports hall"};
 
             string dependantVariable = "Loudness estimate";
             bool depVarIsNum = true;
@@ -44,10 +44,10 @@ namespace PlotTest
             float xTickInterval = 1f;
             float xMargin = 1.1f;
 
-            (float min, float max) yRange = (5f, 12f);
-            int[] yMajorTicks = { 5, 8, 10, 12 };
+            (float min, float max) yRange = (4f, 14f);
+            int[] yMajorTicks = { 4, 6, 8, 10, 12, 14 };
             float yTickInterval = 1f;
-            float yMargin = 1f;
+            float yMargin = 1.1f;
 
             string figureName = $"{(dependantVariable.Contains("distance") ? "Distance" : ("Loudness" + (dataPath.Contains("Proximal") ? "Proximal" : "Distal")))}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
 
@@ -242,9 +242,17 @@ namespace PlotTest
             cA.AxisY.LabelStyle.Font = font;
             cA.AxisX.TitleFont = font;
             cA.AxisY.TitleFont = font;
+
             chart1.Legends.First().Font = font;
             chart1.Legends.First().LegendStyle = LegendStyle.Row;
             chart1.Legends.First().Docking = Docking.Top;
+            chart1.Legends.First().BorderWidth = 1;
+            chart1.Legends.First().BorderDashStyle = ChartDashStyle.Solid;
+            chart1.Legends.First().BorderColor = Color.Black;
+
+            cA.BorderWidth = 2;
+            cA.BorderColor = Color.Black;
+            cA.BorderDashStyle = ChartDashStyle.Solid;
         }
 
         private (List<CustomLabel> major, List<CustomLabel> minor) GetLogLabels(int min, int max, int[] majorTicks , float offset, float tickInterval)
