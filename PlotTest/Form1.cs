@@ -15,11 +15,12 @@ namespace PlotTest
     public partial class Form1 : Form
     {
         private static readonly ChartDashStyle[] _styles = { ChartDashStyle.Solid, ChartDashStyle.Dash, ChartDashStyle.Dot };
+        private static readonly MarkerStyle[] _markers = { MarkerStyle.Circle, MarkerStyle.Cross, MarkerStyle.Diamond };
         public Form1()
         {
             InitializeComponent();
 
-            string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Distance.csv";
+            string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\LoudnessProximalLin.csv";
             string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Exp1Factors.txt";
             //string dataPath = @"C:\Users\User\Desktop\Distance.csv";
             //string factorsPath = @"C:\Users\User\Desktop\Factors.txt";
@@ -35,7 +36,7 @@ namespace PlotTest
             ChartLook(true, true, true, true, "Source distance (m)", "Source distance (m)");
 
             // Exports an emf file for external svg conversion
-            chart1.SaveImage(@"C:\Users\User\Desktop\Test.emf", ChartImageFormat.Emf);
+            chart1.SaveImage(@"C:\Users\User\Desktop\Figure.emf", ChartImageFormat.Emf);
         }
 
         /// <summary>
@@ -63,7 +64,8 @@ namespace PlotTest
                 var meanLine = data.MeanLine(variableX, logY, variableY, restrictionLevels);
                 chart1.Series.Add(lineName);
                 chart1.Series[lineName].ChartType = SeriesChartType.Line;
-                LineLook(lineName, Color.Black, _styles[i], true);
+
+                LineLook(lineName, Color.Black, _styles[i], _markers[i], true);
 
                 int x = 0; // For the X-offset of non-numerical x values
 
@@ -83,7 +85,7 @@ namespace PlotTest
                 var sdLine = data.Std(variableX, logY, variableY, restrictionLevels);
                 chart1.Series.Add($"{lineName} sd");
                 chart1.Series[$"{lineName} sd"].ChartType = SeriesChartType.ErrorBar;
-                LineLook($"{lineName} sd", Color.Black, ChartDashStyle.Solid, false);
+                LineLook($"{lineName} sd", Color.Black, ChartDashStyle.Solid, MarkerStyle.None , false);
 
                 x = 0;
                 
@@ -104,16 +106,19 @@ namespace PlotTest
         /// </summary>
         /// <param name="chart">Name of the line.</param>
         /// <param name="color">Color of the line.</param>
-        /// <param name="style">Style (solid, dash or dot) of the line.</param>
-        /// <param name="isVisible">Specify if the chart is visible in the legend.</param>
-        private void LineLook(string chart, Color color, ChartDashStyle style, bool isVisible)
+        /// <param name="lineStyle">Style (solid, dash or dot) of the line.</param>
+        /// <param name="markerStyle">Style (circle, cross or diamond) of the markers.</param>
+        /// <param name="isVisibleInLegend">Specify if the chart is visible in the legend.</param>
+        private void LineLook(string line, Color color, ChartDashStyle lineStyle, MarkerStyle markerStyle, bool isVisibleInLegend)
         {
-            chart1.Series[chart].BorderWidth = 2;
-            chart1.Series[chart].Color = color;
-            chart1.Series[chart].BorderDashStyle = style;
-            chart1.Series[chart].IsVisibleInLegend = isVisible;
+            chart1.Series[line].BorderWidth = 2;
+            chart1.Series[line].Color = color;
+            chart1.Series[line].BorderDashStyle = lineStyle;
+            chart1.Series[line].MarkerStyle = markerStyle;
+            chart1.Series[line].MarkerSize = 8;
+            chart1.Series[line].IsVisibleInLegend = isVisibleInLegend;
 
-            if (chart.Contains("sd")) chart1.Series[chart].CustomProperties = "PixelPointWidth = 10"; ;
+            if (line.Contains("sd")) chart1.Series[line].CustomProperties = "PixelPointWidth = 10"; ;
         }
 
         private void ChartLook(bool numX, bool logX, bool numY, bool logY, string xTitle, string yTitle)
@@ -127,8 +132,8 @@ namespace PlotTest
             
             float offset = 0.2f;            
             int[] xMajorTicks = { 1, 2, 4, 8, 16 };
-            int[] yMajorTicks = xMajorTicks;
-            //int[] yMajorTicks = { 4, 6, 8, 10, 12, 14, 16, 18, 20 };
+            //int[] yMajorTicks = xMajorTicks;
+            int[] yMajorTicks = { 5, 10, 15, 20 };
 
             if (numX)
             {
@@ -149,15 +154,15 @@ namespace PlotTest
 
                 if (logX)
                 {
-                    var ticks = GetLogLabels(xMajorTicks, offset);
+                    var ticks = GetLogLabels(minX, maxX, xMajorTicks, offset);
                     foreach (var tick in ticks.major) cA.AxisX.CustomLabels.Add(tick);
                     foreach (var tick in ticks.minor) cA.AxisX2.CustomLabels.Add(tick);
                 }
             }
             if (numY)
             {
-                int minY = 1;
-                int maxY = 16;
+                int minY = 4;
+                int maxY = 20;
                 float margin = 1.1f;
 
                 cA.AxisY.Minimum = logX ? minY / margin : minY - margin;
@@ -173,7 +178,7 @@ namespace PlotTest
 
                 if (logY)
                 {
-                    var ticks = GetLogLabels(yMajorTicks, offset);
+                    var ticks = GetLogLabels(minY, maxY, yMajorTicks, offset);
                     foreach (var tick in ticks.major) cA.AxisY.CustomLabels.Add(tick);
                     foreach (var tick in ticks.minor) cA.AxisY2.CustomLabels.Add(tick);
                 }
@@ -201,12 +206,12 @@ namespace PlotTest
 
         }
 
-        private (List<CustomLabel> major, List<CustomLabel> minor) GetLogLabels( int[] majorTicks , float offset)
+        private (List<CustomLabel> major, List<CustomLabel> minor) GetLogLabels(int min, int max, int[] majorTicks , float offset)
         {
             List<CustomLabel> majorCL = new List<CustomLabel>();
             List<CustomLabel> minorCL = new List<CustomLabel>();
 
-            for (int tick = majorTicks.Min(); tick <= majorTicks.Max(); tick++)
+            for (int tick = min; tick <= max; tick++)
             {
                 double linPos = Math.Log(tick, 2); // Log values on linear axis
 
