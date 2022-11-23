@@ -27,13 +27,13 @@ namespace PlotTest
 
             Data data = new Data(dataPath, factorsPath);
 
-            string variableX = "Distance";
+            string variableX = "Room";
             bool logY = true;
-            string variableY = "Room";
+            string variableY = "Visibility";
             List<string> restrictionLevels = new List<string>() {};
 
             Plot(data, variableX, logY, variableY, restrictionLevels);
-            ChartLook(true, true, true, true, "Source distance (m)", "Source distance (m)");
+            ChartLook(false, true, true, true, "Source distance (m)", "Source distance (m)");
 
             // Exports an emf file for external svg conversion
             chart1.SaveImage(@"C:\Users\User\Desktop\Figure.emf", ChartImageFormat.Emf);
@@ -144,6 +144,12 @@ namespace PlotTest
                 cA.AxisX.Minimum = logX ? minX / margin : minX - margin;
                 cA.AxisX.Maximum = logY ? maxX * margin : maxX + margin;
 
+                cA.AxisX2.Enabled = AxisEnabled.True;
+                cA.AxisX2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
+                cA.AxisX2.MajorGrid.LineColor = Color.LightGray;
+                cA.AxisX2.LabelStyle.Enabled = false;
+                cA.AxisX2.LineWidth = 0;
+
                 cA.AxisX2.Minimum = cA.AxisX.Minimum;
                 cA.AxisX2.Maximum = cA.AxisX.Maximum;
 
@@ -168,6 +174,12 @@ namespace PlotTest
                 cA.AxisY.Minimum = logX ? minY / margin : minY - margin;
                 cA.AxisY.Maximum = logY ? maxY * margin : maxY + margin;
 
+                cA.AxisY2.Enabled = AxisEnabled.True;
+                cA.AxisY2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
+                cA.AxisY2.MajorGrid.LineColor = Color.LightGray;
+                cA.AxisY2.LabelStyle.Enabled = false;
+                cA.AxisY2.LineWidth = 0;
+
                 cA.AxisY2.Minimum = cA.AxisY.Minimum;
                 cA.AxisY2.Maximum = cA.AxisY.Maximum;
 
@@ -188,22 +200,9 @@ namespace PlotTest
             cA.AxisX.MajorGrid.LineColor = Color.Gray;
             cA.AxisX.Title = xTitle;
 
-            cA.AxisX2.Enabled = AxisEnabled.True;
-            cA.AxisX2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
-            cA.AxisX2.MajorGrid.LineColor = Color.LightGray;
-            cA.AxisX2.LabelStyle.Enabled = false;
-            cA.AxisX2.LineWidth = 0;
-
             cA.AxisY.LineWidth = 0;
             cA.AxisY.MajorGrid.LineColor = Color.Gray;
             cA.AxisY.Title = yTitle;
-
-            cA.AxisY2.Enabled = AxisEnabled.True;            
-            cA.AxisY2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;            
-            cA.AxisY2.MajorGrid.LineColor = Color.LightGray;            
-            cA.AxisY2.LabelStyle.Enabled = false;            
-            cA.AxisY2.LineWidth = 0;
-
         }
 
         private (List<CustomLabel> major, List<CustomLabel> minor) GetLogLabels(int min, int max, int[] majorTicks , float offset)
