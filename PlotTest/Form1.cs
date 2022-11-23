@@ -62,11 +62,6 @@ namespace PlotTest
 
             // Exports an emf file for external svg conversion
             chart1.SaveImage($@"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Figures\{figureName}.emf", ChartImageFormat.Emf);
-
-            var g = chart1.CreateGraphics();
-            Pen testPen = new Pen(Color.Black, 10);
-            testPen.DashPattern = new float[] { 4f, 2f, 1f, 3f };
-            g.DrawLine(testPen, 0f, 0f, 100f, 100f);
         }
 
         /// <summary>
