@@ -27,13 +27,18 @@ namespace PlotTest
 
             Data data = new Data(dataPath, factorsPath);
 
-            string variableX = "Room";
-            bool logY = true;
+            // WRITE REQUESTED PLOT PARAMETERS HERE
+            string variableX = "Distance";
             string variableY = "Visibility";
             List<string> restrictionLevels = new List<string>() {};
+            string dependantVariable = "Distance (m)";
+            bool depVarIsNum = true;
+            bool depVarIsLog = true;
 
-            Plot(data, variableX, logY, variableY, restrictionLevels);
-            ChartLook(false, true, true, true, "Source distance (m)", "Source distance (m)");
+            Variable xVar = data.Variables.FirstOrDefault(v => v.Name == variableX);
+
+            Plot(data, variableX, true, variableY, restrictionLevels);
+            ChartLook(xVar.IsNum, xVar.IsLog, depVarIsNum, depVarIsLog, xVar.Name, dependantVariable);
 
             // Exports an emf file for external svg conversion
             chart1.SaveImage(@"C:\Users\User\Desktop\Figure.emf", ChartImageFormat.Emf);

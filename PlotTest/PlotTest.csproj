@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\Data.cs" />
+    <Compile Include="Data\Variable.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
