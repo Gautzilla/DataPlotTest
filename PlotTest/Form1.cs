@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -28,12 +29,19 @@ namespace PlotTest
             Data data = new Data(dataPath, factorsPath);
 
             // WRITE REQUESTED PLOT PARAMETERS HERE
-            string variableX = "Level";
-            string variableY = "Visibility";
+            string variableX = "distance";
+            string variableY = "room";
             List<string> restrictionLevels = new List<string>() {};
-            string dependantVariable = "Distance (m)";
+
+            string dependantVariable = "Loudness estimate";
             bool depVarIsNum = true;
             bool depVarIsLog = true;
+
+            string figureName = $"{dependantVariable.Split(' ').First()}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
+
+            // Adjusts variables names
+            variableX = data.Variables.First(v => v.Name.ToLower().Contains(variableX.ToLower())).Name;
+            variableY = data.Variables.First(v => v.Name.ToLower().Contains(variableY.ToLower())).Name;
 
             Variable xVar = data.Variables.FirstOrDefault(v => v.Name == variableX);
 
@@ -41,7 +49,7 @@ namespace PlotTest
             ChartLook(xVar, depVarIsNum, depVarIsLog,dependantVariable);
 
             // Exports an emf file for external svg conversion
-            chart1.SaveImage(@"C:\Users\User\Desktop\Figure.emf", ChartImageFormat.Emf);
+            chart1.SaveImage($@"C:\Users\User\Desktop\{figureName}.emf", ChartImageFormat.Emf);
         }
 
         /// <summary>
