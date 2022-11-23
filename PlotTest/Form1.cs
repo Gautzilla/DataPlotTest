@@ -21,8 +21,8 @@ namespace PlotTest
         {
             InitializeComponent();
 
-            string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\LoudnessProximalLin.csv";
-            string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Exp1Factors.txt";
+            string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\LoudnessDistal.csv";
+            string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Exp2Factors.txt";
             //string dataPath = @"C:\Users\User\Desktop\Distance.csv";
             //string factorsPath = @"C:\Users\User\Desktop\Factors.txt";
 
@@ -33,11 +33,17 @@ namespace PlotTest
             string variableY = "room";
             List<string> restrictionLevels = new List<string>() {};
 
-            string dependantVariable = "Loudness estimate";
+            string dependantVariable = "Loudness Estimate";
             bool depVarIsNum = true;
             bool depVarIsLog = true;
 
-            string figureName = $"{dependantVariable.Split(' ').First()}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
+            (float min, float max) xRange = (1f , 16f);
+            int[] xMajorTicks = { 1, 2, 4, 8, 16 };
+
+            (float min, float max) yRange = (5f, 12f);
+            int[] yMajorTicks = { 5, 8, 10, 12 };
+
+            string figureName = $"{(dependantVariable.Contains("distance") ? "Distance" : "Loudness")}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
 
             // Adjusts variables names
             variableX = data.Variables.First(v => v.Name.ToLower().Contains(variableX.ToLower())).Name;
@@ -46,10 +52,10 @@ namespace PlotTest
             Variable xVar = data.Variables.FirstOrDefault(v => v.Name == variableX);
 
             Plot(data, variableX, true, variableY, restrictionLevels);
-            ChartLook(xVar, depVarIsNum, depVarIsLog,dependantVariable);
+            ChartLook(xVar, depVarIsNum, depVarIsLog, dependantVariable, xRange, yRange, xMajorTicks, yMajorTicks) ;
 
             // Exports an emf file for external svg conversion
-            chart1.SaveImage($@"C:\Users\User\Desktop\{figureName}.emf", ChartImageFormat.Emf);
+            chart1.SaveImage($@"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Figures\{figureName}.emf", ChartImageFormat.Emf);
         }
 
         /// <summary>
@@ -134,7 +140,7 @@ namespace PlotTest
             if (line.Contains("sd")) chart1.Series[line].CustomProperties = "PixelPointWidth = 10"; ;
         }
 
-        private void ChartLook(Variable xVar, bool numY, bool logY, string yTitle)
+        private void ChartLook(Variable xVar, bool numY, bool logY, string yTitle, (float min, float max) xRange, (float min, float max) yRange, int[] xMajorTicks, int[] yMajorTicks )
         {
             ChartArea cA = chart1.ChartAreas[0];
 
@@ -144,14 +150,11 @@ namespace PlotTest
             cA.AxisY2.MajorTickMark.Enabled = false;
             
             float offset = 0.2f;            
-            int[] xMajorTicks = { 1, 2, 4, 8, 16 };
-            //int[] yMajorTicks = xMajorTicks;
-            int[] yMajorTicks = { 5, 10, 15, 20 };
 
             if (xVar.IsNum)
             {
-                int minX = 1;
-                int maxX = 16;
+                float minX = xRange.min;
+                float maxX = xRange.max;
                 float margin = 1.1f;
 
                 cA.AxisX.Minimum = xVar.IsLog ? minX / margin : minX - margin;
@@ -173,15 +176,15 @@ namespace PlotTest
 
                 if (xVar.IsLog)
                 {
-                    var ticks = GetLogLabels(minX, maxX, xMajorTicks, offset);
+                    var ticks = GetLogLabels((int)minX, (int)Math.Ceiling(maxX), xMajorTicks, offset);
                     foreach (var tick in ticks.major) cA.AxisX.CustomLabels.Add(tick);
                     foreach (var tick in ticks.minor) cA.AxisX2.CustomLabels.Add(tick);
                 }
             }
             if (numY)
             {
-                int minY = 4;
-                int maxY = 20;
+                float minY = yRange.min;
+                float maxY = yRange.max;
                 float margin = 1.1f;
 
                 cA.AxisY.Minimum = logY ? minY / margin : minY - margin;
@@ -203,7 +206,7 @@ namespace PlotTest
 
                 if (logY)
                 {
-                    var ticks = GetLogLabels(minY, maxY, yMajorTicks, offset);
+                    var ticks = GetLogLabels((int)minY,(int)Math.Ceiling(maxY), yMajorTicks, offset);
                     foreach (var tick in ticks.major) cA.AxisY.CustomLabels.Add(tick);
                     foreach (var tick in ticks.minor) cA.AxisY2.CustomLabels.Add(tick);
                 }
