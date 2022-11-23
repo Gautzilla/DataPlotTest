@@ -28,22 +28,28 @@ namespace PlotTest
 
             Data data = new Data(dataPath, factorsPath);
 
+            chart1.Size = new Size(800, 600);
+
             // WRITE REQUESTED PLOT PARAMETERS HERE
-            string variableX = "distance";
-            string variableY = "room";
+            string variableX = "Distance";
+            string variableY = "Room";
             List<string> restrictionLevels = new List<string>() {};
 
-            string dependantVariable = "Loudness Estimate";
+            string dependantVariable = "Loudness estimate";
             bool depVarIsNum = true;
             bool depVarIsLog = true;
 
             (float min, float max) xRange = (1f , 16f);
             int[] xMajorTicks = { 1, 2, 4, 8, 16 };
+            float xTickInterval = 1f;
+            float xMargin = 1.1f;
 
             (float min, float max) yRange = (5f, 12f);
             int[] yMajorTicks = { 5, 8, 10, 12 };
+            float yTickInterval = 1f;
+            float yMargin = 1f;
 
-            string figureName = $"{(dependantVariable.Contains("distance") ? "Distance" : "Loudness")}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
+            string figureName = $"{(dependantVariable.Contains("distance") ? "Distance" : ("Loudness" + (dataPath.Contains("Proximal") ? "Proximal" : "Distal")))}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
 
             // Adjusts variables names
             variableX = data.Variables.First(v => v.Name.ToLower().Contains(variableX.ToLower())).Name;
@@ -52,10 +58,15 @@ namespace PlotTest
             Variable xVar = data.Variables.FirstOrDefault(v => v.Name == variableX);
 
             Plot(data, variableX, true, variableY, restrictionLevels);
-            ChartLook(xVar, depVarIsNum, depVarIsLog, dependantVariable, xRange, yRange, xMajorTicks, yMajorTicks) ;
+            ChartLook(xVar, depVarIsNum, depVarIsLog, dependantVariable, xRange, yRange, xMajorTicks, yMajorTicks, xTickInterval, yTickInterval, xMargin, yMargin) ;
 
             // Exports an emf file for external svg conversion
             chart1.SaveImage($@"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Figures\{figureName}.emf", ChartImageFormat.Emf);
+
+            var g = chart1.CreateGraphics();
+            Pen testPen = new Pen(Color.Black, 10);
+            testPen.DashPattern = new float[] { 4f, 2f, 1f, 3f };
+            g.DrawLine(testPen, 0f, 0f, 100f, 100f);
         }
 
         /// <summary>
@@ -69,7 +80,7 @@ namespace PlotTest
             for (int i = 0; i < data.GetLevels(variableY).Count; i++)
             {
                 // Computes the offset to apply to each line depending on if there are 2 or 3 lines.
-                float xOffset = 0.05f ;
+                float xOffset = 0.02f ;
                 switch (data.GetLevels(variableY).Count)
                 {
                     case 1: xOffset *= 0; break;
@@ -130,17 +141,19 @@ namespace PlotTest
         /// <param name="isVisibleInLegend">Specify if the chart is visible in the legend.</param>
         private void LineLook(string line, Color color, ChartDashStyle lineStyle, MarkerStyle markerStyle, bool isVisibleInLegend)
         {
-            chart1.Series[line].BorderWidth = 2;
+            chart1.Series[line].BorderWidth = 4;
             chart1.Series[line].Color = color;
             chart1.Series[line].BorderDashStyle = lineStyle;
             chart1.Series[line].MarkerStyle = markerStyle;
-            chart1.Series[line].MarkerSize = 8;
+            chart1.Series[line].MarkerSize = 10;
             chart1.Series[line].IsVisibleInLegend = isVisibleInLegend;
+
+            
 
             if (line.Contains("sd")) chart1.Series[line].CustomProperties = "PixelPointWidth = 10"; ;
         }
 
-        private void ChartLook(Variable xVar, bool numY, bool logY, string yTitle, (float min, float max) xRange, (float min, float max) yRange, int[] xMajorTicks, int[] yMajorTicks )
+        private void ChartLook(Variable xVar, bool numY, bool logY, string yTitle, (float min, float max) xRange, (float min, float max) yRange, int[] xMajorTicks, int[] yMajorTicks, float xTickInterval, float yTickInterval, float xMargin, float yMargin)
         {
             ChartArea cA = chart1.ChartAreas[0];
 
@@ -149,19 +162,21 @@ namespace PlotTest
             cA.AxisY.MajorTickMark.Enabled = false;
             cA.AxisY2.MajorTickMark.Enabled = false;
             
+            // Offset for labels fromPosition and toPosition
             float offset = 0.2f;            
 
             if (xVar.IsNum)
             {
                 float minX = xRange.min;
                 float maxX = xRange.max;
-                float margin = 1.1f;
+                float margin = xMargin; // Margin at the edges of the axes
 
                 cA.AxisX.Minimum = xVar.IsLog ? minX / margin : minX - margin;
                 cA.AxisX.Maximum = xVar.IsLog ? maxX * margin : maxX + margin;
 
                 cA.AxisX2.Enabled = AxisEnabled.True;
                 cA.AxisX2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
+                cA.AxisX2.MajorGrid.LineWidth = 2;
                 cA.AxisX2.MajorGrid.LineColor = Color.LightGray;
                 cA.AxisX2.LabelStyle.Enabled = false;
                 cA.AxisX2.LineWidth = 0;
@@ -176,7 +191,7 @@ namespace PlotTest
 
                 if (xVar.IsLog)
                 {
-                    var ticks = GetLogLabels((int)minX, (int)Math.Ceiling(maxX), xMajorTicks, offset);
+                    var ticks = GetLogLabels((int)minX, (int)Math.Ceiling(maxX), xMajorTicks, offset, xTickInterval);
                     foreach (var tick in ticks.major) cA.AxisX.CustomLabels.Add(tick);
                     foreach (var tick in ticks.minor) cA.AxisX2.CustomLabels.Add(tick);
                 }
@@ -185,13 +200,14 @@ namespace PlotTest
             {
                 float minY = yRange.min;
                 float maxY = yRange.max;
-                float margin = 1.1f;
+                float margin = yMargin;
 
                 cA.AxisY.Minimum = logY ? minY / margin : minY - margin;
                 cA.AxisY.Maximum = logY ? maxY * margin : maxY + margin;
 
                 cA.AxisY2.Enabled = AxisEnabled.True;
                 cA.AxisY2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
+                cA.AxisY2.MajorGrid.LineWidth = 2;
                 cA.AxisY2.MajorGrid.LineColor = Color.LightGray;
                 cA.AxisY2.LabelStyle.Enabled = false;
                 cA.AxisY2.LineWidth = 0;
@@ -206,7 +222,7 @@ namespace PlotTest
 
                 if (logY)
                 {
-                    var ticks = GetLogLabels((int)minY,(int)Math.Ceiling(maxY), yMajorTicks, offset);
+                    var ticks = GetLogLabels((int)minY,(int)Math.Ceiling(maxY), yMajorTicks, offset, yTickInterval);
                     foreach (var tick in ticks.major) cA.AxisY.CustomLabels.Add(tick);
                     foreach (var tick in ticks.minor) cA.AxisY2.CustomLabels.Add(tick);
                 }
@@ -219,14 +235,27 @@ namespace PlotTest
             cA.AxisY.LineWidth = 0;
             cA.AxisY.MajorGrid.LineColor = Color.Gray;
             cA.AxisY.Title = yTitle;
+
+            Font font = new Font("Tahoma", 16, FontStyle.Regular);
+
+            cA.AxisX.LabelStyle.Font = font;
+            cA.AxisY.LabelStyle.Font = font;
+            cA.AxisX.TitleFont = font;
+            cA.AxisY.TitleFont = font;
+            chart1.Legends.First().Font = font;
+            chart1.Legends.First().LegendStyle = LegendStyle.Row;
+            chart1.Legends.First().Docking = Docking.Top;
         }
 
-        private (List<CustomLabel> major, List<CustomLabel> minor) GetLogLabels(int min, int max, int[] majorTicks , float offset)
+        private (List<CustomLabel> major, List<CustomLabel> minor) GetLogLabels(int min, int max, int[] majorTicks , float offset, float tickInterval)
         {
             List<CustomLabel> majorCL = new List<CustomLabel>();
             List<CustomLabel> minorCL = new List<CustomLabel>();
 
-            for (int tick = min; tick <= max; tick++)
+            float[] tickPositions = Enumerable.Range(min, (int)((max-min)/tickInterval)+1).Select((i,x) => min + x*tickInterval).ToArray();
+            Debug.WriteLine(string.Join(" ", tickPositions));
+
+            foreach (float tick in tickPositions)
             {
                 double linPos = Math.Log(tick, 2); // Log values on linear axis
 
@@ -240,7 +269,7 @@ namespace PlotTest
                 cL.LabelMark = LabelMarkStyle.Box;
                 cL.GridTicks = GridTickTypes.Gridline;
 
-                if (majorTicks.Contains(tick)) majorCL.Add(cL);
+                if (majorTicks.Any(t => Math.Abs(t-tick) < 0.00001f)) majorCL.Add(cL);
                 else minorCL.Add(cL);
             }
             return (majorCL, minorCL);
