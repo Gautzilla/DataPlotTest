@@ -15,27 +15,27 @@ namespace PlotTest
 {
     public partial class Form1 : Form
     {
-        private static readonly ChartDashStyle[] _styles = { ChartDashStyle.Solid, ChartDashStyle.Dash, ChartDashStyle.Dot };
+        private static readonly ChartDashStyle[] _styles = { ChartDashStyle.Solid, ChartDashStyle.Dot, ChartDashStyle.Dash };
         private static readonly MarkerStyle[] _markers = { MarkerStyle.Circle, MarkerStyle.Cross, MarkerStyle.Diamond };
         public Form1()
         {
             InitializeComponent();
 
-            string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\LoudnessDistal.csv";
-            string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Exp2Factors.txt";
+            string dataPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Distance.csv";
+            string factorsPath = @"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Exp1Factors.txt";
             //string dataPath = @"C:\Users\User\Desktop\Distance.csv";
             //string factorsPath = @"C:\Users\User\Desktop\Factors.txt";
 
             Data data = new Data(dataPath, factorsPath);
 
-            chart1.Size = new Size(800, 600);
+            chart1.Size = new Size(500, 800);
 
             // WRITE REQUESTED PLOT PARAMETERS HERE
             string variableX = "Distance";
             string variableY = "Visibility";
-            List<string> restrictionLevels = new List<string>() {"Sports hall"};
+            List<string> restrictionLevels = new List<string>() {};
 
-            string dependantVariable = "Loudness estimate";
+            string dependantVariable = "Distance estimate (m)";
             bool depVarIsNum = true;
             bool depVarIsLog = true;
 
@@ -44,12 +44,12 @@ namespace PlotTest
             float xTickInterval = 1f;
             float xMargin = 1.1f;
 
-            (float min, float max) yRange = (4f, 14f);
-            int[] yMajorTicks = { 4, 6, 8, 10, 12, 14 };
+            (float min, float max) yRange = (1f, 16f);
+            int[] yMajorTicks = { 1, 2, 4, 8, 16 };
             float yTickInterval = 1f;
             float yMargin = 1.1f;
 
-            string figureName = $"{(dependantVariable.Contains("distance") ? "Distance" : ("Loudness" + (dataPath.Contains("Proximal") ? "Proximal" : "Distal")))}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
+            string figureName = $"{(dependantVariable.Contains("Distance") ? "Distance" : ("Loudness" + (dataPath.Contains("Proximal") ? "Proximal" : "Distal")))}_{variableX}" + (variableY != null ? $"X{variableY}" : "") + (restrictionLevels.Count > 0 ? $"-{String.Join("x", restrictionLevels.Select(l => Regex.Replace(l, " ", "")))}" : "");
 
             // Adjusts variables names
             variableX = data.Variables.First(v => v.Name.ToLower().Contains(variableX.ToLower())).Name;
@@ -171,7 +171,7 @@ namespace PlotTest
 
                 cA.AxisX2.Enabled = AxisEnabled.True;
                 cA.AxisX2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
-                cA.AxisX2.MajorGrid.LineWidth = 2;
+                cA.AxisX2.MajorGrid.LineWidth = 1;
                 cA.AxisX2.MajorGrid.LineColor = Color.LightGray;
                 cA.AxisX2.LabelStyle.Enabled = false;
                 cA.AxisX2.LineWidth = 0;
@@ -202,7 +202,7 @@ namespace PlotTest
 
                 cA.AxisY2.Enabled = AxisEnabled.True;
                 cA.AxisY2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
-                cA.AxisY2.MajorGrid.LineWidth = 2;
+                cA.AxisY2.MajorGrid.LineWidth = 1;
                 cA.AxisY2.MajorGrid.LineColor = Color.LightGray;
                 cA.AxisY2.LabelStyle.Enabled = false;
                 cA.AxisY2.LineWidth = 0;
@@ -239,7 +239,7 @@ namespace PlotTest
             cA.AxisY.TitleFont = font;
 
             chart1.Legends.First().Font = font;
-            chart1.Legends.First().LegendStyle = LegendStyle.Row;
+            chart1.Legends.First().LegendStyle = LegendStyle.Table;
             chart1.Legends.First().Docking = Docking.Top;
             chart1.Legends.First().BorderWidth = 1;
             chart1.Legends.First().BorderDashStyle = ChartDashStyle.Solid;
@@ -256,7 +256,6 @@ namespace PlotTest
             List<CustomLabel> minorCL = new List<CustomLabel>();
 
             float[] tickPositions = Enumerable.Range(min, (int)((max-min)/tickInterval)+1).Select((i,x) => min + x*tickInterval).ToArray();
-            Debug.WriteLine(string.Join(" ", tickPositions));
 
             foreach (float tick in tickPositions)
             {
