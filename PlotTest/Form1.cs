@@ -28,7 +28,7 @@ namespace PlotTest
             Data data = new Data(dataPath, factorsPath);
 
             // WRITE REQUESTED PLOT PARAMETERS HERE
-            string variableX = "Distance";
+            string variableX = "Level";
             string variableY = "Visibility";
             List<string> restrictionLevels = new List<string>() {};
             string dependantVariable = "Distance (m)";
@@ -38,7 +38,7 @@ namespace PlotTest
             Variable xVar = data.Variables.FirstOrDefault(v => v.Name == variableX);
 
             Plot(data, variableX, true, variableY, restrictionLevels);
-            ChartLook(xVar.IsNum, xVar.IsLog, depVarIsNum, depVarIsLog, xVar.Name, dependantVariable);
+            ChartLook(xVar, depVarIsNum, depVarIsLog,dependantVariable);
 
             // Exports an emf file for external svg conversion
             chart1.SaveImage(@"C:\Users\User\Desktop\Figure.emf", ChartImageFormat.Emf);
@@ -126,7 +126,7 @@ namespace PlotTest
             if (line.Contains("sd")) chart1.Series[line].CustomProperties = "PixelPointWidth = 10"; ;
         }
 
-        private void ChartLook(bool numX, bool logX, bool numY, bool logY, string xTitle, string yTitle)
+        private void ChartLook(Variable xVar, bool numY, bool logY, string yTitle)
         {
             ChartArea cA = chart1.ChartAreas[0];
 
@@ -140,14 +140,14 @@ namespace PlotTest
             //int[] yMajorTicks = xMajorTicks;
             int[] yMajorTicks = { 5, 10, 15, 20 };
 
-            if (numX)
+            if (xVar.IsNum)
             {
                 int minX = 1;
                 int maxX = 16;
                 float margin = 1.1f;
 
-                cA.AxisX.Minimum = logX ? minX / margin : minX - margin;
-                cA.AxisX.Maximum = logY ? maxX * margin : maxX + margin;
+                cA.AxisX.Minimum = xVar.IsLog ? minX / margin : minX - margin;
+                cA.AxisX.Maximum = xVar.IsLog ? maxX * margin : maxX + margin;
 
                 cA.AxisX2.Enabled = AxisEnabled.True;
                 cA.AxisX2.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
@@ -158,12 +158,12 @@ namespace PlotTest
                 cA.AxisX2.Minimum = cA.AxisX.Minimum;
                 cA.AxisX2.Maximum = cA.AxisX.Maximum;
 
-                cA.AxisX.IsLogarithmic = logX;
-                cA.AxisX2.IsLogarithmic = logX;
+                cA.AxisX.IsLogarithmic = xVar.IsLog;
+                cA.AxisX2.IsLogarithmic = xVar.IsLog;
                 cA.AxisX.LogarithmBase = 2;
                 cA.AxisX2.LogarithmBase = 2;
 
-                if (logX)
+                if (xVar.IsLog)
                 {
                     var ticks = GetLogLabels(minX, maxX, xMajorTicks, offset);
                     foreach (var tick in ticks.major) cA.AxisX.CustomLabels.Add(tick);
@@ -176,7 +176,7 @@ namespace PlotTest
                 int maxY = 20;
                 float margin = 1.1f;
 
-                cA.AxisY.Minimum = logX ? minY / margin : minY - margin;
+                cA.AxisY.Minimum = logY ? minY / margin : minY - margin;
                 cA.AxisY.Maximum = logY ? maxY * margin : maxY + margin;
 
                 cA.AxisY2.Enabled = AxisEnabled.True;
@@ -203,7 +203,7 @@ namespace PlotTest
 
             cA.AxisX.LineWidth = 0;
             cA.AxisX.MajorGrid.LineColor = Color.Gray;
-            cA.AxisX.Title = xTitle;
+            cA.AxisX.Title = xVar.Name + (xVar.IsNum ? $" ({xVar.Unit})" : string.Empty);
 
             cA.AxisY.LineWidth = 0;
             cA.AxisY.MajorGrid.LineColor = Color.Gray;

@@ -45,9 +45,10 @@ namespace PlotTest
                 bool isNum = fields[1] != "qualitative";
                 bool isLog = fields[1] == "log";
                 string[] levels = fields[2].Split(',').Select(l => l.Trim()).ToArray();
+                string unit = isNum ? fields[3] : string.Empty;
 
                 if (!isNum) Variables.Add(new Variable(name, levels, isNum));
-                else Variables.Add(new Variable(name, levels, isNum, isLog));
+                else Variables.Add(new Variable(name, levels, isNum, isLog, unit));
             }
         }
 

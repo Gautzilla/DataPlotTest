@@ -12,6 +12,7 @@ namespace PlotTest
         private string[] _levels;
         private bool _isNum;
         private bool _isLog;
+        private string _unit;
 
         public string Name
         {
@@ -37,6 +38,12 @@ namespace PlotTest
             private set { _isLog = value; }
         }
 
+        public string Unit
+        {
+            get { return _unit; }
+            private set { _unit = value; }
+        }
+
 
         public Variable (string name, string[] levels, bool isNum)
         {
@@ -44,14 +51,16 @@ namespace PlotTest
             Levels = levels;
             IsNum = isNum;
             IsLog = false;
+            Unit = string.Empty;
         }
 
-        public Variable(string name, string[] levels, bool isNum, bool isLog)
+        public Variable(string name, string[] levels, bool isNum, bool isLog, string unit)
         {
             Name = name;
             Levels = levels;
             IsNum = isNum;
             IsLog = isLog;
+            Unit = unit;
         }
     }
 }
