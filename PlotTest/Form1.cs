@@ -17,6 +17,15 @@ namespace PlotTest
     {
         private static readonly ChartDashStyle[] _styles = { ChartDashStyle.Solid, ChartDashStyle.Dot, ChartDashStyle.Dash };
         private static readonly MarkerStyle[] _markers = { MarkerStyle.Circle, MarkerStyle.Cross, MarkerStyle.Diamond };
+        private static float _xOffset = 0.2f;
+        private static readonly Pen[] _pens =
+        {
+            new Pen(Color.Black),
+            new Pen(Color.Black){DashPattern = new float[]{ 4f, 2f, 1f, 3f } },
+            new Pen(Color.Black){DashPattern = new float[]{ 1f, 1f, 1f, 3f } },
+
+        };
+
         public Form1()
         {
             InitializeComponent();
@@ -64,6 +73,8 @@ namespace PlotTest
             chart1.SaveImage($@"C:\Users\User\Documents\Gaut\Manips Thèse\Distance\Résultats\Bruit\Figures\{figureName}.emf", ChartImageFormat.Emf);
         }
 
+        private static List<List<(string x, float y)>> _meanLines;
+
         /// <summary>
         /// Plots an interaction between two factors.
         /// </summary>
@@ -85,8 +96,31 @@ namespace PlotTest
 
                 string lineName = data.GetLevels(variableY)[i] ?? variableX;
 
+                // CONFIDENCE INTERVAL
+                var sdLine = data.Std(variableX, logY, variableY, restrictionLevels);
+                chart1.Series.Add($"{lineName} sd");
+                chart1.Series[$"{lineName} sd"].ChartType = SeriesChartType.ErrorBar;
+                LineLook($"{lineName} sd", Color.Black, ChartDashStyle.Solid, MarkerStyle.None , false);
+
+                int x = 0;
+
+                foreach (var point in sdLine[i])
+                {
+                    if (int.TryParse(point.x, out int xVal))
+                    {
+                        chart1.Series[$"{lineName} sd"].Points.AddXY(xVal * (1 + xOffset), 0, point.y.l, point.y.h);
+                    }
+                    else
+                    {
+                        chart1.Series[$"{lineName} sd"].Points.AddXY(x + xOffset, 0, point.y.l, point.y.h);
+                        x++;
+                    }
+                }
+
                 // MEAN
-                var meanLine = data.MeanLine(variableX, logY, variableY, restrictionLevels);
+                _meanLines = data.MeanLine(variableX, logY, variableY, restrictionLevels);
+                
+                /*
                 chart1.Series.Add(lineName);
                 chart1.Series[lineName].ChartType = SeriesChartType.Line;
 
@@ -105,24 +139,7 @@ namespace PlotTest
                         x++;
                     }
                 }
-
-                // CONFIDENCE INTERVAL
-                var sdLine = data.Std(variableX, logY, variableY, restrictionLevels);
-                chart1.Series.Add($"{lineName} sd");
-                chart1.Series[$"{lineName} sd"].ChartType = SeriesChartType.ErrorBar;
-                LineLook($"{lineName} sd", Color.Black, ChartDashStyle.Solid, MarkerStyle.None , false);
-
-                x = 0;
-                
-                foreach (var point in sdLine[i])
-                {
-                    if (int.TryParse(point.x, out int xVal)) chart1.Series[$"{lineName} sd"].Points.AddXY(xVal * (1 + xOffset), 0, point.y.l, point.y.h);
-                    else
-                    {
-                        chart1.Series[$"{lineName} sd"].Points.AddXY(x + xOffset, 0, point.y.l, point.y.h);
-                        x++;
-                    }
-                }
+                */
             }
         }
 
@@ -276,10 +293,48 @@ namespace PlotTest
             }
             return (majorCL, minorCL);
         }
-
-        private void chart1_Click(object sender, EventArgs e)
+        
+        private void chart1_Paint(object sender, PaintEventArgs e)
         {
+            var g = e.Graphics;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            bool xIsNumerical = _meanLines.All(mL => mL.All(mean => float.TryParse(mean.x, out float numMean)));
 
+            for (int line = 0; line < _meanLines.Count; line++)
+            {
+                Pen pen = _pens[line];
+                float xOffset = _xOffset;
+                float x = 0;
+                switch (_meanLines.Count)
+                {
+                    case 1: xOffset *= 0; break;
+                    case 2: xOffset *= (line == 0 ? -1 : 1); break;
+                    default: xOffset *= (line - 1); break;
+                }
+
+                if (xIsNumerical)
+                {
+                    List<(float x, float y)> points = _meanLines[line].Select(mean => (float.Parse(mean.x) * (1 + xOffset), mean.y)).ToList();
+                    PaintLine(g, pen, points);
+                } else
+                {
+                    List<(float x, float y)> points = _meanLines[line].Select(mean => (x, mean.y)).ToList();
+                    x++;
+                    PaintLine(g, pen, points);
+                }
+            }
         }
+
+        private void PaintLine(Graphics g, Pen pen, List<(float x, float y)> points)
+        {
+            List<Point> pointsList = points.Select(p => new Point((int)chart1.ChartAreas[0].AxisX.ValueToPixelPosition(p.x), (int)chart1.ChartAreas[0].AxisY.ValueToPixelPosition(p.y))).ToList();
+            
+            for (int p = 1; p < pointsList.Count; p++)
+            {
+                g.DrawLine(pen, pointsList[p - 1], pointsList[p]);
+            }
+        }
+
+        
     }
 }
